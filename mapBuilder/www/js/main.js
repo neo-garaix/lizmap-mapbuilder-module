@@ -358,12 +358,7 @@ $(function() {
 
     // Filter if is active
     if (!document.getElementById("filterButtonNo").classList.contains("active")) {
-
-      const filterInstance = new ExtentFilter(listTree);
-
-      filterInstance.filter().then(r => {
-        endFilter();
-      });
+      filterByExtent()
     }
   }
 
@@ -432,10 +427,8 @@ $(function() {
   // Keywords manager
   let keywordsManager = new KeywordsManager();
 
-  document.addEventListener('keywordsUpdated', async () => {
-    const filterInstance = new KeywordsFilter(listTree, keywordsManager.getSelectedKeywords());
-    await filterInstance.filter();
-    layerStore.updateTree(listTree);
+  document.addEventListener('keywordsUpdated', () => {
+    filterByKeywords();
   });
 
   //Build the tree
@@ -458,19 +451,15 @@ $(function() {
     document.querySelectorAll('#filterButtons > label').forEach(button => {
       const filterName = button.children[0].name;
 
-      button.addEventListener("click", async () => {
+      button.addEventListener("click", () => {
         resetTree();
 
         if (filterName === "Extent") {
-          const filterInstance = new ExtentFilter(listTree);
-          await filterInstance.filter();
+          filterByExtent()
 
         } else if (filterName === "Keywords") {
-          const filterInstance = new KeywordsFilter(listTree, keywordsManager.getSelectedKeywords());
-          await filterInstance.filter();
+          filterByKeywords()
         }
-
-        layerStore.updateTree(listTree);
       });
     });
   }
@@ -488,21 +477,36 @@ $(function() {
         list.classList.add("active");
       }
     });
+
+    document.getElementById("keywordsUnionButton").addEventListener("click", function() {
+      keywordsManager.setCalculationMethod("union");
+      filterByKeywords();
+    });
+
+    document.getElementById("keywordsIntersectButton").addEventListener("click", function() {
+      keywordsManager.setCalculationMethod("intersect");
+      filterByKeywords();
+    });
+  }
+
+  async function filterByExtent() {
+    const filterInstance = new ExtentFilter(listTree);
+    await filterInstance.filter();
+    layerStore.updateTree(listTree);
+  }
+
+  async function filterByKeywords() {
+    const filterInstance = new KeywordsFilter(listTree, keywordsManager.getSelectedKeywords(), keywordsManager.getCalculationMethod());
+    await filterInstance.filter();
+    layerStore.updateTree(listTree);
   }
 
   function resetTree() {
     listTree = layerStore.setAllVisible();
     document.getElementById("filterKeywordsList").classList.remove("active");
     document.getElementById("filterKeywordsHandler").classList.remove("active");
-  }
-
-  /**
-   * End filter process by updating the tree.
-   */
-  const endFilter = () => {
     layerStore.updateTree(listTree);
-    listTree = layerStore.getTree();
-  };
+  }
 
   /**
    * Get the Layer node from its UUID
