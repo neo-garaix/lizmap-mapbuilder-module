@@ -469,11 +469,13 @@ $(function() {
 
     document.getElementById("keywordsUnionButton").addEventListener("click", function() {
       keywordsManager.setCalculationMethod("union");
+      document.getElementById("filterKeywordsListButton").classList.replace("btn-danger", "btn-info");
       filter();
     });
 
     document.getElementById("keywordsIntersectButton").addEventListener("click", function() {
       keywordsManager.setCalculationMethod("intersect");
+      document.getElementById("filterKeywordsListButton").classList.replace("btn-info", "btn-danger");
       filter();
     });
 
