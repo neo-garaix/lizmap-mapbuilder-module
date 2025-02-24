@@ -357,9 +357,7 @@ $(function() {
     }
 
     // Filter if is active
-    if (!document.getElementById("filterButtonNo").classList.contains("active")) {
-      filterByExtent()
-    }
+    filter();
   }
 
   mapBuilder.map.on('moveend', onMoveEnd);
@@ -428,7 +426,7 @@ $(function() {
   let keywordsManager = new KeywordsManager();
 
   document.addEventListener('keywordsUpdated', () => {
-    filterByKeywords();
+    filter();
   });
 
   //Build the tree
@@ -441,32 +439,23 @@ $(function() {
   listTree = layerStore.getTree();
 
   // Carry filter buttons
+  let listFilters = {
+    Extent: new ExtentFilter(layerStore),
+    Keywords: new KeywordsFilter(layerStore, keywordsManager)
+  };
+  let selectedFilters = [];
   initFilterButtons();
   initEventKeywordsFilters();
 
-  /**
-   * Initialize filter buttons.
-   */
-  function initFilterButtons() {
-    document.querySelectorAll('#filterButtons > label').forEach(button => {
-      const filterName = button.children[0].name;
-
-      button.addEventListener("click", () => {
-        resetTree();
-
-        if (filterName === "Extent") {
-          filterByExtent()
-
-        } else if (filterName === "Keywords") {
-          filterByKeywords()
-        }
-      });
-    });
-  }
-
   function initEventKeywordsFilters() {
-    document.getElementById("filterButtonKeywords").addEventListener("click", function() {
-      document.getElementById("filterKeywordsHandler").classList.add("active");
+    const button = document.getElementById("filterButtonKeywords");
+
+    button.addEventListener("click", function() {
+      if (!button.classList.contains("active")) {
+        document.getElementById("filterKeywordsHandler").classList.add("active");
+      } else {
+        document.getElementById("filterKeywordsHandler").classList.remove("active");
+      }
     });
 
     document.getElementById("filterKeywordsListButton").addEventListener("click", function() {
@@ -480,31 +469,67 @@ $(function() {
 
     document.getElementById("keywordsUnionButton").addEventListener("click", function() {
       keywordsManager.setCalculationMethod("union");
-      filterByKeywords();
+      filter();
     });
 
     document.getElementById("keywordsIntersectButton").addEventListener("click", function() {
       keywordsManager.setCalculationMethod("intersect");
-      filterByKeywords();
+      filter();
     });
   }
 
-  async function filterByExtent() {
-    const filterInstance = new ExtentFilter(listTree);
-    await filterInstance.filter();
-    layerStore.updateTree(listTree);
+  /**
+   * Initialize filter buttons.
+   */
+  function initFilterButtons() {
+    // ButtonNoFilter
+    document.getElementById("filterButtonNo").addEventListener("click", function() {
+      selectedFilters = [];
+      resetTree();
+      document.getElementById("filterButtonExtent").classList.remove("active");
+      document.getElementById("filterButtonKeywords").classList.remove("active");
+    });
+
+    const filtersUpdate = new CustomEvent('selectedFiltersUpdated');
+
+    document.querySelectorAll('#filterButtons > label').forEach(button => {
+      const filterName = button.children[0].name;
+
+      button.addEventListener("click", () => {
+        if (!button.classList.contains("active")) {
+          selectedFilters.push(filterName);
+          document.dispatchEvent(filtersUpdate);
+        } else {
+          selectedFilters.splice(selectedFilters.indexOf(filterName), 1);
+          document.dispatchEvent(filtersUpdate);
+        }
+      });
+    });
   }
 
-  async function filterByKeywords() {
-    const filterInstance = new KeywordsFilter(listTree, keywordsManager.getSelectedKeywords(), keywordsManager.getCalculationMethod());
-    await filterInstance.filter();
-    layerStore.updateTree(listTree);
+  document.addEventListener('selectedFiltersUpdated', () => {
+    if (selectedFilters.length < 1) {
+      resetTree();
+    } else {
+      resetTree(false)
+      filter();
+    }
+  });
+
+  async function filter() {
+    layerStore.setAllVisible();
+
+    for (let i = 0; i < selectedFilters.length; i++) {
+      listFilters[selectedFilters[i]].filter();
+    }
   }
 
-  function resetTree() {
+  function resetTree(complete = true) {
     listTree = layerStore.setAllVisible();
-    document.getElementById("filterKeywordsList").classList.remove("active");
-    document.getElementById("filterKeywordsHandler").classList.remove("active");
+    if (complete) {
+      document.getElementById("filterKeywordsList").classList.remove("active");
+      document.getElementById("filterKeywordsHandler").classList.remove("active");
+    }
     layerStore.updateTree(listTree);
   }
 

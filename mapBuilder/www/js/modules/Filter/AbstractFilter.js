@@ -12,18 +12,22 @@ export class AbstractFilter {
    * Filter the layer tree.
    * @param {LayerTreeFolder[]} layerTree - Layer tree to filter.
    */
-  constructor(layerTree) {
-    this._layerTree = layerTree;
+  constructor(layerStore) {
+    this._layerStore = layerStore;
   }
 
   /**
    * Filter the layer tree.
    */
-  async filter() {
+  filter() {
+    this._layerTree = this._layerStore.getTree();
     for (let i = 0; i < this._layerTree.length; i++) {
       this._currentElement = this._layerTree[i];
-      this.recFilter(this._layerTree[i]);
+      if (this._currentElement.isVisible()) {
+        this.recFilter(this._layerTree[i]);
+      }
     }
+    this._layerStore.updateTree(this._layerTree);
   }
 
   /**
