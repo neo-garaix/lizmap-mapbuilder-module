@@ -1,5 +1,7 @@
 /* Mapbuilder */
 
+/* stylelint-disable no-descending-specificity */
+
 #headermenu {
     padding:0;
     top:45px;
@@ -691,4 +693,60 @@ custom-slider .thumb {
 
 .timer-bar-scroller.type-success {
     background-color: rgb(44 179 62);
+}
+
+/* Visual mapcontext */
+
+.element-mapcontext {
+    margin: 10px 5px;
+    padding: 7px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 400px;
+    border: solid white 3px;
+    border-radius: 10px;
+    box-shadow: 0 0 4px 0.4px rgb(0 0 0 / 20%);
+}
+
+.element-mapcontext:hover {
+    box-shadow: 0 0 4px 0.4px rgb(0 0 0 / 40%);
+
+}
+
+.element-mapcontext-title {
+    margin: auto 0;
+    padding: 0 5px;
+    max-width: 200px;
+    max-height: 50px;
+    white-space: collapse;
+    overflow-y: auto;
+}
+
+.mapcontext-button {
+    display: flex;
+    justify-content: space-between;
+    min-width: 130px;
+    margin-left: 15px;
+}
+
+.mapcontext-button > button {
+    background-color: white;
+    border: none;
+    border-radius: 30px;
+    width: 35px;
+    height: 35px;
+}
+
+.mapcontext-button > button:hover {
+    box-shadow: 0 0 5px 0.5px rgb(0 0 0 / 40%);
+    transition: 0.2s;
+}
+
+.mapcontext-visibility {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 35px;
+    height: 35px;
 }

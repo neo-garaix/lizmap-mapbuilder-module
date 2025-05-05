@@ -1,35 +1,54 @@
 {jmessage}
 {if $mcOwnList && $mcOwnCount > 0}
-<div>
-	<strong>{@mapBuilder~mapcontext.private@}</strong>
-	<table class="table table-sm">
-	  {foreach $mcOwnList as $mc}
-	  <tr>
-	    <td>{$mc->name}</td>
-	    <td>
-	      {if $loggedUser}
-	      	<button class="btn-mapcontext-del btn btn-mini" value="{$mc->id}" data-toggle="tooltip" title="{@mapBuilder~mapcontext.mymaps.button.del@}"><i class="fas fa-trash"></i></button>
-	      {/if}
-	      <button class="btn-mapcontext-run btn btn-mini" value="{$mc->id}" data-toggle="tooltip" title="{@mapBuilder~mapcontext.mymaps.button.run@}"><i class="fas fa-eye"></i></button>
-	    </td>
-	    <td>{if $mc->is_public}<i class="fas fa-share" data-toggle="tooltip" title="{@mapBuilder~mapcontext.public@}"></i>{/if}</td>
-	  </tr>
-	  {/foreach}
-	</table>
-</div>
+    <div>
+        <strong>{@mapBuilder~mapcontext.private@}</strong>
+        {foreach $mcOwnList as $mc}
+            <div class="element-mapcontext"
+                    {if $mc->is_public}
+                        style="background: linear-gradient(to right, white 87%, #d6ffd0);"
+                    {else}
+                        style="background: linear-gradient(to right, white 87%, #ffdbdb);"
+                    {/if}
+            >
+                <p class="element-mapcontext-title">{$mc->name}</p>
+                <div class="mapcontext-button">
+                    <button class="btn-mapcontext-run" value="{$mc->id}" data-toggle="tooltip"
+                            title="{@mapBuilder~mapcontext.mymaps.button.run@}"><i class="fas fa-eye"></i></button>
+                    {if $loggedUser}
+                        <button class="btn-mapcontext-del" value="{$mc->id}" data-toggle="tooltip"
+                                title="{@mapBuilder~mapcontext.mymaps.button.del@}"><i class="fas fa-trash"></i>
+                        </button>
+                    {/if}
+                    <div class="mapcontext-visibility">
+                        {if $mc->is_public}
+                            <i class="fas fa-lock-open" data-toggle="tooltip"
+                               title="{@mapBuilder~mapcontext.map.public@}"></i>
+                        {else}
+                            <i class="fas fa-lock" data-toggle="tooltip"
+                               title="{@mapBuilder~mapcontext.map.private@}"></i>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        {/foreach}
+    </div>
 {/if}
 {if $mcSharedList && $mcSharedCount > 0}
-<div>
-	{if $loggedUser}<strong>{@mapBuilder~mapcontext.public@}</strong>{/if}
-	<table class="table table-sm">
-	  {foreach $mcSharedList as $mc}
-	  <tr>
-	    <td>{$mc->name}</td>
-	    <td>
-	      <button class="btn-mapcontext-run btn btn-mini" value="{$mc->id}" data-toggle="tooltip" title="{@mapBuilder~mapcontext.mymaps.button.run@}"><i class="fas fa-eye"></i></button>
-	    </td>
-	  </tr>
-	  {/foreach}
-	</table>
-</div>
+    <div>
+        {if $loggedUser}<strong>{@mapBuilder~mapcontext.public@}</strong>{/if}
+        {foreach $mcSharedList as $mc}
+            <div class="element-mapcontext" style="background: linear-gradient(to right, white 87%, #d6ffd0);">
+                <p class="element-mapcontext-title">{$mc->name}</p>
+                <div class="mapcontext-button"
+                     style="min-width: 80px;">
+                    <button class="btn-mapcontext-run" value="{$mc->id}" data-toggle="tooltip"
+                            title="{@mapBuilder~mapcontext.mymaps.button.run@}"><i class="fas fa-eye"></i></button>
+                    <div class="mapcontext-visibility">
+                        <i class="fas fa-lock-open" data-toggle="tooltip"
+                           title="{@mapBuilder~mapcontext.map.public@}"></i>
+                    </div>
+                </div>
+            </div>
+        {/foreach}
+    </div>
 {/if}
