@@ -33,8 +33,8 @@ import {getJobStatus, queuePrint} from './dist/inkmap.js';
 
 import {KeywordsManager} from "./modules/Filter/KeywordsManager";
 // Filters
-import {ExtentFilter} from './modules/Filter/FilterExtent.js';
-import {KeywordsFilter} from './modules/Filter/FilterKeywords.js';
+import {initFilters} from "./scripts/initFilters";
+import {filter} from "./scripts/lib/FilterFunctions";
 
 // Extent on metropolitan France if not defined in mapBuilder.ini.php
 var originalCenter = [217806.92414447578, 5853470.637803803];
@@ -454,147 +454,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keywords manager
     let keywordsManager = new KeywordsManager();
 
-    document.addEventListener('keywordsUpdated', () => {
-        filter();
-    });
-
-    //Build the tree
-    var listTree = [];
-
     var layerStore;
 
     layerStore = new LayerStore(document.getElementById("layer-store-holder"), keywordsManager);
 
-    listTree = layerStore.getTree();
-
-    // Carry filter buttons
-    let listFilters = {
-        Extent: new ExtentFilter(layerStore),
-        Keywords: new KeywordsFilter(layerStore, keywordsManager)
-    };
-    let selectedFilters = [];
-    initFilterButtons();
-    initEventKeywordsFilters();
-
-    /**
-     * Initializes event listeners for managing keyword filters in the UI.
-     */
-    function initEventKeywordsFilters() {
-        const button = document.getElementById("filterButtonKeywords");
-
-        button.addEventListener("click", function() {
-            if (!button.classList.contains("active")) {
-                document.getElementById("filter-keywords-handler").classList.add("active");
-            } else {
-                document.getElementById("filter-keywords-handler").classList.remove("active");
-            }
-        });
-
-        document.getElementById("filter-keywords-list-button").addEventListener("click", function() {
-            const list = document.getElementById("filter-keywords-list")
-            if (list.classList.contains("active")) {
-                list.classList.remove("active");
-            } else {
-                list.classList.add("active");
-            }
-        });
-
-        document.getElementById("keywordsUnionButton").addEventListener("click", function() {
-            keywordsManager.setCalculationMethod("union");
-            document.getElementById("filter-keywords-list-button").classList.replace("btn-danger", "btn-info");
-            document.getElementById("filter-keywords-list-words").classList.remove("inter");
-            filter();
-        });
-
-        document.getElementById("keywordsIntersectButton").addEventListener("click", function() {
-            keywordsManager.setCalculationMethod("intersect");
-            document.getElementById("filter-keywords-list-button").classList.replace("btn-info", "btn-danger");
-            document.getElementById("filter-keywords-list-words").classList.add("inter");
-            filter();
-        });
-
-        const textInputKeywords = document.getElementById("keywordsFindInput");
-
-        let timeout;
-
-        textInputKeywords.addEventListener("input", function () {
-            clearTimeout(timeout);
-
-            timeout = setTimeout(() => {
-                keywordsManager.refreshKeywordsFromSearch(textInputKeywords.value);
-            }, 400);
-        });
-    }
-
-    /**
-     * Initialize filter buttons.
-     */
-    function initFilterButtons() {
-    // ButtonNoFilter
-        document.getElementById("filter-button-no").addEventListener("click", function() {
-            selectedFilters = [];
-            resetTree();
-            document.getElementById("filterButtonExtent").classList.remove("active");
-            document.getElementById("filterButtonKeywords").classList.remove("active");
-        });
-
-        const filtersUpdate = new CustomEvent('selectedFiltersUpdated');
-
-        document.querySelectorAll('#filter-buttons > label').forEach(button => {
-            const filterName = button.children[0].name;
-
-            button.addEventListener("click", () => {
-                if (!button.classList.contains("active")) {
-                    selectedFilters.push(filterName);
-                    document.dispatchEvent(filtersUpdate);
-                } else {
-                    selectedFilters.splice(selectedFilters.indexOf(filterName), 1);
-                    document.dispatchEvent(filtersUpdate);
-                }
-            });
-        });
-    }
-
-    document.addEventListener('selectedFiltersUpdated', () => {
-        if (selectedFilters.length < 1) {
-            resetTree();
-        } else {
-            resetTree(false)
-            filter();
-        }
-    });
-
-    /**
-     * This method iterates through an array of selected filters, applying each filter function from the `listFilters` object.
-     */
-    async function filter() {
-        layerStore.setProjectAllVisible();
-
-        for (let i = 0; i < selectedFilters.length; i++) {
-            listFilters[selectedFilters[i]].filter();
-        }
-    }
-
-    /**
-     * Resets the state of the tree structure and updates it.
-     * If the `complete` parameter is set to true, additional UI elements are reset.
-     * @param {boolean} [complete] - Indicates if a complete reset should occur, including UI elements.
-     */
-    function resetTree(complete = true) {
-        listTree = layerStore.setProjectAllVisible();
-        if (complete) {
-            document.getElementById("filter-keywords-list").classList.remove("active");
-            document.getElementById("filter-keywords-handler").classList.remove("active");
-        }
-        layerStore.updateTree(listTree);
-    }
+    initFilters(layerStore, keywordsManager);
 
     /* Handle custom addLayerButton clicks */
     document.querySelector('#layer-store-holder').addEventListener('click', function (e) {
         if (e.target.closest('.layer-store-layer') && e.target.tagName !== "SELECT") {
             var element = e.target.closest('.layer-store-layer');
 
-            var node = layerStore.getNodeFromUuid(listTree, element.id);
+            var node = layerStore.getNodeFromUuid(layerStore.getTree(), element.id);
             var nodeLi = document.getElementById(element.id).closest("li");
 
             var repositoryId = node.getRepository();
